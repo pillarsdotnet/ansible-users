@@ -1,0 +1,15 @@
+---
+
+- name: 'Manage authorized_keys file.'
+  authorized_key:
+    key: '{{ managed.ssh_key }}'
+    key_options: '{{ managed.ssh_options }}'
+    manage_dir: '{{ user.ssh_manage_dir }}'
+    state: '{{ users_manage_key_state }}'
+    user: '{{ user.user }}'
+    validate_certs: '{{ managed.ssh_validate_certs }}'
+  loop: '{{ users_manage_key_list }}'
+  vars:
+    user: '{{ users_merged[_users_name] }}'
+    managed: '{{ users_merged[item] }}'
+  when: '"ssh_key" in managed'

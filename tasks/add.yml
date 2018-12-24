@@ -1,0 +1,21 @@
+---
+
+- name: 'Add user accounts.'
+  loop: '{{ users_add_list }}'
+  loop_control:
+    loop_var: '_username'
+  include_tasks: 'add_user.yml'
+  vars:
+    users_user: '{{ users_merged[_username] }}'
+
+- name: 'Add users to authorized_keys files.'
+  include_tasks: 'manage_key.yml'
+  loop: '{{ users_add_list }}'
+  loop_control:
+    loop_var: '_users_name'
+  vars:
+    users_manage_key_list: '{{
+      [users_merged[_users_name].ssh_users]
+      |union([users_merged[_users_name].user])
+      |flatten|unique }}'
+    users_manage_key_state: 'present'

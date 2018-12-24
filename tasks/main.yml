@@ -1,0 +1,86 @@
+---
+
+- name: 'Flatten and dedup users_remove list.'
+  set_fact:
+    users_remove_list: '{{ users_remove|flatten|unique|list }}'
+
+- name: 'Flatten and dedup users_disable list.'
+  set_fact:
+    users_disable_list: '{{ users_disable|flatten|unique|list
+                |difference(users_remove_list)|list }}'
+
+- name: 'Flatten and dedup users_add list.'
+  set_fact:
+    users_add_list: '{{ users_flat
+      |union(users_flat|map("extract",users_list,"ssh_users")|list)
+      |flatten|unique|select("defined")|list
+      |difference(users_disable_list|union(users_remove_list))|list }}'
+  vars:
+    users_flat: '{{ users_add|flatten|unique }}'
+
+- name: 'Merge defaults with user list.'
+  loop: '{{ users_add_list
+     |union(users_disable_list)
+     |union(users_remove_list) }}'
+  set_fact:
+    users_merged: '{{ users_merged|default({})
+             |combine({ item: users_data }) }}'
+  vars:
+    users_data: '{{ users_defaults
+      |combine({"group": item,"home": users_home|format(item),"user": item})
+      |combine(users_list[item]|default({})) }}'
+
+# Assume that only system groups are associated with system users.
+- name: 'Add system, then non-system groups.'
+  include_tasks: 'groups.yml'
+  loop:
+    - true
+    - false
+  loop_control:
+    loop_var: '_users_system'
+  vars:
+    users_groups_users: '{{ users_merged.values()
+                            |selectattr("system","eq",_users_system)|list }}'
+
+- name: 'Ensure that sudoers group members have passwordless sudo.'
+  copy:
+    content: |
+      %{{ users_sudoers_group }} ALL=(ALL:ALL) NOPASSWD: ALL
+    dest: '/etc/sudoers.d/{{ users_sudoers_group }}'
+    group: 'root'
+    mode: 0400
+    owner: 'root'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: 'Ensure that ansible is a member of the ssh users group'
+  user:
+    name: 'ansible'
+    groups: '{{ users_ssh_group }}'
+
+- name: 'Add users.'
+  include_tasks: 'add.yml'
+
+- name: 'Disable users'
+  include_tasks: 'disable.yml'
+
+- name: 'Remove users.'
+  include_tasks: 'remove.yml'
+
+- name: 'Exclude inactive users from authorized_keys files.'
+  include_tasks: 'manage_key.yml'
+  loop: '{{ users_add_list }}'
+  loop_control:
+    loop_var: '_users_name'
+  vars:
+    users_manage_key_list: '{{ users_disable_list
+                        |union(users_remove_list) }}'
+    users_manage_key_state: 'absent'
+
+- name: 'Ensure that ssh users have ssh access.'
+  include_role:
+    name: 'sshd'
+  vars:
+    sshd_AllowGroups: '{{ users_ssh_group }}'
+    sshd_AllowUsers: []
+    sshd_DenyGroups: []
+    sshd_DenyUsers: []

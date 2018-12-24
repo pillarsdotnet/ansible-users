@@ -1,0 +1,18 @@
+---
+
+- name: 'Create user account.'
+  failed_when: false
+  user:
+    append: '{{ users_user.append }}'
+    comment: '{{ users_user.comment }}'
+    create_home: '{{ users_user.create_home }}'
+    expires: '{{ users_user.expires }}'
+    group: '{{ users_user.group }}'
+    groups: '{{ users_user.groups }}'
+    home: '{{ users_user.home }}'
+    local: '{{ users_user.local }}'
+    move_home: '{{ users_user.move_home }}'
+    name: '{{ users_user.user }}'
+    shell: '{{ users_user.shell }}'
+    state: 'present'
+    system: '{{ users_user.system }}'

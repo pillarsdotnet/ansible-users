@@ -1,0 +1,9 @@
+---
+
+- name: 'Add groups'
+  group:
+    name: '{{ item }}'
+    system: '{{ _users_system }}'
+  loop: '{{ users_groups_users|map(attribute="group")|list
+     |union(users_groups_users|map(attribute="groups")|list)
+     |flatten|unique }}'

@@ -1,0 +1,23 @@
+---
+
+- name: 'Check ownership of home directories before chown/chmod.'
+  loop: '{{ users_disable_list }}'
+  register: 'users_disable_stats'
+  stat:
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+    path: '{{ users_merged[item].home }}'
+
+- name: 'Reset ownership and permissions on disabled homedirs.'
+  file:
+    group: 'root'
+    mode: 'ug-s,o-rwwxt'
+    owner: 'root'
+    path: '{{ item.stat.path }}'
+    recurse: true
+  loop: '{{ users_disable_stats.results }}'
+  when:
+    - 'item.stat is defined'
+    - 'item.stat.exists'
+    - 'item.stat.pw_name == item.item'

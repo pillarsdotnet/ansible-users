@@ -1,0 +1,64 @@
+---
+
+ansible_user: 'ansible'
+
+users_add: []
+
+users_defaults:
+  append: '{{ users_default_append }}'
+  comment: '{{ users_default_comment }}'
+  create_home: '{{ users_default_createhome }}'
+  expires: '{{ users_default_expires }}'
+  groups: '{{ users_default_groups }}'
+  local: '{{ users_default_local }}'
+  move_home: '{{ users_default_movehome }}'
+  shell: '{{ users_default_shell }}'
+  ssh_options: '{{ users_default_sshoptions }}'
+  ssh_manage_dir: '{{ users_default_sshmanagedir }}'
+  ssh_users: '{{ users_default_sshusers }}'
+  ssh_validate_certs: '{{ users_default_sshvalidatecerts }}'
+  system: '{{ users_default_system }}'
+
+users_default_append: false
+
+users_default_comment: ''
+
+users_default_createhome: true
+
+users_default_expires: -1  # No expiration.
+
+users_default_groups:
+  - '{{ users_ssh_group }}'
+  - '{{ users_sudoers_group }}'
+
+users_default_local: false
+
+users_default_movehome: false
+
+users_default_shell: '/bin/bash'
+
+users_default_sshoptions: ''
+
+users_default_sshmanagedir: true
+
+users_default_sshusers: []
+
+users_default_sshvalidatecerts: false
+
+users_default_system: false
+
+users_disable: []
+
+users_home: '/home/%s'
+
+users_list: {}
+
+users_remove: []
+
+users_ssh_group: 'sshd'
+
+users_sudoers_group: 'sudo'
+
+users_tmpdirs:
+  - '/tmp'
+  - '/var/tmp'
